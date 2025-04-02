@@ -1,0 +1,45 @@
+
+Web crawler
+
+
+main function
+    - arguments:
+        - file of seed urls (20)
+        - max number of suburls crawled per seed url
+        - positive keyword filename
+        - negative keyword filename
+
+    unpack keyword files and place them into lists
+    unpack seed url file and place them into list
+
+crawler
+- args: 
+    - seed urls list
+    - max # of suburls
+    - positive keyword list
+    - negative keyword list
+
+- variables: 
+    - queue : deque(seed urls)
+    - url_list
+
+while queue:
+    pop url 
+
+    check if url is visited:
+        continue
+    
+    try to download page: 
+
+        if isn't html: 
+            continue
+        if response code == 429:
+            continue
+        parse with beautiful soup
+
+        check for keywords:
+        
+        find all links
+            check if url is valid 
+            check if url isn't visited
+            check if domain doesn't have over N subpages
