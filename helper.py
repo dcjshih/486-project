@@ -1,9 +1,20 @@
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 from crawler import ALLOWED_DOMAINS
 
 def find_domain(url):
     parsed = urlparse(url)
     return parsed.netloc
+
+def normalize_url(url):
+    parsed_url = urlparse(url)
+    # switch to https
+    scheme = "https"
+    # removing fragments + getting rid of trailing / 
+    netloc = parsed_url.netloc
+    path = parsed_url.path.rstrip("/") if parsed_url.path != "/" else "/"
+    # reconstruct
+    clean_url = urlunparse((scheme, netloc, path, parsed_url.params, parsed_url.query, ""))
+    return clean_url
 
 def extension_filtering(url):
     allowed_extensions = ['.html', '.htm']
@@ -17,8 +28,3 @@ def extension_filtering(url):
     if file_extension.lower() in [ext.lstrip('.') for ext in allowed_extensions]:
         return True
     return False
-
-
-def is_valid_url(url):
-    parsed_url = urlparse(url)
-    return parsed_url.netloc in ALLOWED_DOMAINS and parsed_url.scheme in {"http", "https"}

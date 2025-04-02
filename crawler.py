@@ -16,15 +16,16 @@ HEADERS = {
 
 def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
     start_time = time.time()
-    visited = defaultdict(set)
-    output_pos = defaultdict(lambda: [''] * 36)
-    output_neg = defaultdict(lambda: [''] * 36)
+    visited = {}
+    output_pos = {}
+    output_neg = {}
     queue = deque(seed_list)
     max_url = max_suburls * len(seed_list)
 
     while queue and len(visited) < max_url:
         url = queue.popleft()
         url_domain = find_domain(url)
+
         if url_domain in visited and url in visited[url_domain]: 
             continue
 
@@ -37,6 +38,13 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
         
             if "text/html" not in response.headers["Content-Type"]:
                 continue
+            
+            # if maxed out for that specific domain
+            if url_domain in visited and len(visited[url_domain]) > max_suburls:
+                queue = deque(link for link in queue if urlparse(link).netloc != url_domain)
+                continue
+
+            ## extracting keywords ###
 
             soup = BeautifulSoup(response.text, "html.parser")
             for tag in soup(["script", "style", "header", "footer", "nav", "aside"]):
@@ -44,7 +52,6 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
             
             text = soup.get_text(separator="\n", strip=True)
 
-            ### extracting keywords ###
             automaton_neg = build_aho_corasick(neg_keyword_list)
             automaton_pos = build_aho_corasick(pos_keyword_list)
 
@@ -56,10 +63,30 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
             output_neg[url] = list(negative)[:len(neg_keyword_list)] + [''] * (len(neg_keyword_list) - len(negative))
             output_pos[url] = list(positive)[:len(pos_keyword_list)] + [''] * (len(pos_keyword_list) - len(positive))
 
+            if url_domain not in visited:
+                visited[url_domain] = set()
+            visited[url_domain].add(normalize_url(url))
+
+            ### extracting links ###
+
+            for link in soup.find_all("a", href=True):
+                full_link = urljoin(url, link["href"]) # constructs absolute url
+                # checks domain and that it's http/https
+                if find_domain(full_link) not in ALLOWED_DOMAINS:
+                    continue
+                # checks link isn't explicitly a non html file, e.g .doc, .pdf, .jpg etc. 
+                if not extension_filtering(full_link):
+                    continue
+                normalized_link = normalize_url(full_link)
+                if find_domain(normalized_link) in visited and full_link in visited[find_domain(normalized_link)]:
+                    continue
+
+                queue.append(normalized_link)
 
         except requests.exceptions.RequestException:
             print(f"Failed to fetch {url}, skipping...")
             continue  
+    return output_neg, output_pos
         
 
 def main():
@@ -78,9 +105,9 @@ def main():
     with open(seed_filename, "r") as f:
         for line in f:
             seed_url = line.strip()
-            seed_list.append(seed_url)
+            seed_list.append(normalize_url(seed_url))
             # create ALLOWED_DOMAINS list based on seed url domains
-            ALLOWED_DOMAINS.append(urlparse(seed_url).netloc)
+            ALLOWED_DOMAINS.add(urlparse(seed_url).netloc)
 
     with open(positive_keyword_filename, "r") as f:
         for line in f:
@@ -90,7 +117,17 @@ def main():
         for line in f:
             neg_keyword_list.append(line.strip())
     
-    crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls)
+    output_neg, output_pos = crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls)
+
+    with open("output_pos.txt", "w") as f: 
+        f.write("Positive output values:\n")
+        for key, value_set in output_pos.items():
+            f.write(f"{key}: {', '.join(value_set)}\n")  # Convert set to a comma-separated string
+
+    with open("output_neg.txt", "w") as f:
+        f.write("Negative output values:\n")
+        for key, value_set in output_neg.items():
+            f.write(f"{key}: {', '.join(value_set)}\n")
 
 if __name__ == "__main__":
     main()
