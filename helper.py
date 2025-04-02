@@ -1,5 +1,5 @@
 from urllib.parse import urljoin, urlparse
-from crawler import visited
+from crawler import ALLOWED_DOMAINS
 
 def find_domain(url):
     parsed = urlparse(url)
@@ -21,4 +21,4 @@ def extension_filtering(url):
 
 def is_valid_url(url):
     parsed_url = urlparse(url)
-    return parsed_url.netloc in visited and parsed_url.scheme in {"http", "https"}
+    return parsed_url.netloc in ALLOWED_DOMAINS and parsed_url.scheme in {"http", "https"}
