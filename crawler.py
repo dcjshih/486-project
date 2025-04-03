@@ -23,7 +23,7 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
     queue = deque(seed_list)
     max_url = max_suburls * len(seed_list)
 
-    while queue and len(visited) < max_url:
+    while queue and sum(len(v) for v in visited.values()) < max_url:
         url = queue.popleft()
         url_domain = find_domain(url)
 
