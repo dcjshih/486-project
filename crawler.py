@@ -9,6 +9,7 @@ import time
 import pprint
 
 ALLOWED_DOMAINS = set()
+ROBOTS_CACHE = {}
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -27,6 +28,10 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
         url_domain = find_domain(url)
 
         if url_domain in visited and url in visited[url_domain]: 
+            continue
+
+        if not is_allowed_by_robots(url):
+            print(f"{url} is not allowed by robots.txt")
             continue
 
         try:
@@ -71,7 +76,7 @@ def crawler(seed_list, pos_keyword_list, neg_keyword_list, max_suburls):
 
             for link in soup.find_all("a", href=True):
                 full_link = urljoin(url, link["href"]) # constructs absolute url
-                # checks domain and that it's http/https
+                # checks if in domain
                 if find_domain(full_link) not in ALLOWED_DOMAINS:
                     continue
                 # checks link isn't explicitly a non html file, e.g .doc, .pdf, .jpg etc. 

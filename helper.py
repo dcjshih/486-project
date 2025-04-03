@@ -1,5 +1,6 @@
 from urllib.parse import urljoin, urlparse, urlunparse
-from crawler import ALLOWED_DOMAINS
+import urllib.robotparser
+from crawler import ALLOWED_DOMAINS, ROBOTS_CACHE, HEADERS
 
 def find_domain(url):
     parsed = urlparse(url)
@@ -28,3 +29,31 @@ def extension_filtering(url):
     if file_extension.lower() in [ext.lstrip('.') for ext in allowed_extensions]:
         return True
     return False
+
+def get_robots_parser(domain):
+    """Fetch and parse robots.txt for a given domain, caching the results."""
+    if domain in ROBOTS_CACHE:
+        return ROBOTS_CACHE[domain]
+
+    robots_url = f"https://{domain}/robots.txt"
+    rp = urllib.robotparser.RobotFileParser()
+
+    try:
+        rp.set_url(robots_url)
+        rp.read()
+        ROBOTS_CACHE[domain] = rp
+    except Exception as e:
+        print(f"Failed to fetch robots.txt from {robots_url}: {e}")
+        rp = None  # Assume no restrictions if fetching fails
+
+    return rp
+
+def is_allowed_by_robots(url):
+    """Check if the URL is allowed by robots.txt."""
+    domain = urlparse(url).netloc
+    rp = get_robots_parser(domain)
+
+    if rp and not rp.can_fetch(HEADERS["User-Agent"], url):
+        print(f"Blocked by robots.txt: {url}")
+        return False
+    return True

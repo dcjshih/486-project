@@ -1,8 +1,7 @@
-amost sold out
+almost sold out
 special coupon
-bestseller
+best seller
 hot	coupons
-best seller	
 minutes ago	
 flash sale	
 ends in
@@ -16,12 +15,12 @@ final sale
 sitewide
 last few
 online exclusive
-I want it 
+i want it 
 off everything
 extra
-trend-setting
+trend setting
 60% off
-most-wanted
+most wanted
 statement
 season
 hurry
@@ -32,5 +31,6 @@ shop now
 buy now
 limited time
 pay later
-Instantly
+instantly
 your next post
+trending
