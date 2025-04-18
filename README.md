@@ -10,6 +10,8 @@ Here are the main parts:
 5. `Retrieval_tests.py`: This is the file that was used to test the search engine.
 6. `templates/index.html` and `static/app.js`: These contain the front-end of the search engine
 7. `index_old.html`: This is a deprecated version of the front-end. This version is a bit more sophisticated, but ran us into problems to connect with the front-end, so we constructed a more simple version. A next step could be to re-implement this front-end to the back-end.
+8. `website_embeddings.pt`: This file contains the embeddings related to each website. It can be used to calculate cosine similarity with the query embedding.
+9. `fine_tune_model.ipynb`: This file contains the code for preprocessing, creating the dataset for fine-tuning, and fine-tuning the MiniLM model.
 
 ## Crawler
 # Features
@@ -57,6 +59,9 @@ The crawler generates two output files:
 - `output_neg.txt`: Contains URLs and detected negative keywords.
 
 ## Model Implementation:
+- MiniLM is a compact and efficient variation of BERT model.
+- MiniLM model was fine-tuned on a small dataset using cosine similarity loss and trained on 1 epoch to avoid overfitting.
+- The fine-tuned model is used to encode every website's extracted text to create word embeddings
 
 ## Retrieval:
 # Features
